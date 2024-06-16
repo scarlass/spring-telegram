@@ -1,12 +1,12 @@
 package dev.scaraz.lib.spring.telegram.bind.resolver.impl;
 
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramCmdMessage;
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramHandlerExecutor;
-import dev.scaraz.mars.v2.lib.telegram.bind.arg.TextSource;
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.HandlerType;
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.MessageSource;
-import dev.scaraz.mars.v2.lib.telegram.bind.resolver.TelegramAnnotationArgResolver;
-import dev.scaraz.mars.v2.lib.telegram.config.TelegramContext;
+import dev.scaraz.lib.spring.telegram.bind.TelegramCmdMessage;
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandlerExecutor;
+import dev.scaraz.lib.spring.telegram.bind.arg.TextSource;
+import dev.scaraz.lib.spring.telegram.bind.enums.HandlerType;
+import dev.scaraz.lib.spring.telegram.bind.enums.MessageSource;
+import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramAnnotationArgResolver;
+import dev.scaraz.lib.spring.telegram.config.TelegramContext;
 
 import java.lang.annotation.Annotation;
 import java.util.List;

@@ -1,7 +1,7 @@
 package dev.scaraz.lib.spring.telegram.bind;
 
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.HandlerType;
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.UpdateType;
+import dev.scaraz.lib.spring.telegram.bind.enums.HandlerType;
+import dev.scaraz.lib.spring.telegram.bind.enums.UpdateType;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.core.MethodParameter;

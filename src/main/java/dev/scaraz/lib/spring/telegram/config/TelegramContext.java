@@ -1,8 +1,8 @@
 package dev.scaraz.lib.spring.telegram.config;
 
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.ChatSource;
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.HandlerType;
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.UpdateType;
+import dev.scaraz.lib.spring.telegram.bind.enums.ChatSource;
+import dev.scaraz.lib.spring.telegram.bind.enums.HandlerType;
+import dev.scaraz.lib.spring.telegram.bind.enums.UpdateType;
 import lombok.Getter;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;

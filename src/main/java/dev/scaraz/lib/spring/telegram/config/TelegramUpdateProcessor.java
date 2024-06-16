@@ -1,17 +1,18 @@
 package dev.scaraz.lib.spring.telegram.config;
 
-import dev.scaraz.mars.v2.lib.telegram.TelegramUtil;
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramCmdMessage;
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramHandler;
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramHandlerExecutor;
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramInterceptor;
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.HandlerType;
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.UpdateType;
-import dev.scaraz.mars.v2.lib.telegram.bind.resolver.TelegramAnnotationArgResolver;
-import dev.scaraz.mars.v2.lib.telegram.bind.resolver.TelegramTypeArgResolver;
-import dev.scaraz.mars.v2.lib.telegram.config.process.CallbackQueryUpdateProcessor;
-import dev.scaraz.mars.v2.lib.telegram.config.process.MessageUpdateProcessor;
-import dev.scaraz.mars.v2.lib.telegram.config.process.UpdateProcessor;
+
+import dev.scaraz.lib.spring.telegram.TelegramUtil;
+import dev.scaraz.lib.spring.telegram.bind.TelegramCmdMessage;
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandler;
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandlerExecutor;
+import dev.scaraz.lib.spring.telegram.bind.TelegramInterceptor;
+import dev.scaraz.lib.spring.telegram.bind.enums.HandlerType;
+import dev.scaraz.lib.spring.telegram.bind.enums.UpdateType;
+import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramAnnotationArgResolver;
+import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramTypeArgResolver;
+import dev.scaraz.lib.spring.telegram.config.process.CallbackQueryUpdateProcessor;
+import dev.scaraz.lib.spring.telegram.config.process.MessageUpdateProcessor;
+import dev.scaraz.lib.spring.telegram.config.process.UpdateProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;

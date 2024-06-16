@@ -1,7 +1,7 @@
 package dev.scaraz.lib.spring.telegram.bind.resolver;
 
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramHandlerExecutor;
-import dev.scaraz.mars.v2.lib.telegram.config.TelegramContext;
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandlerExecutor;
+import dev.scaraz.lib.spring.telegram.config.TelegramContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

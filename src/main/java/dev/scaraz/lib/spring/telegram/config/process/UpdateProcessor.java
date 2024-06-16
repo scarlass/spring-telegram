@@ -1,7 +1,7 @@
 package dev.scaraz.lib.spring.telegram.config.process;
 
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramHandler;
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.ChatSource;
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandler;
+import dev.scaraz.lib.spring.telegram.bind.enums.ChatSource;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;

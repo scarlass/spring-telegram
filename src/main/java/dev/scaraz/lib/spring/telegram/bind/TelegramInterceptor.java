@@ -1,6 +1,6 @@
 package dev.scaraz.lib.spring.telegram.bind;
 
-import dev.scaraz.mars.v2.lib.telegram.config.TelegramContext;
+import dev.scaraz.lib.spring.telegram.config.TelegramContext;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 
 import java.util.Optional;

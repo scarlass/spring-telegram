@@ -1,8 +1,8 @@
 package dev.scaraz.lib.spring.telegram.config;
 
-import dev.scaraz.mars.v2.lib.telegram.bind.resolver.GeneralArgResolvers;
-import dev.scaraz.mars.v2.lib.telegram.bind.resolver.TelegramAnnotationArgResolver;
-import dev.scaraz.mars.v2.lib.telegram.bind.resolver.TelegramTypeArgResolver;
+import dev.scaraz.lib.spring.telegram.bind.resolver.GeneralArgResolvers;
+import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramAnnotationArgResolver;
+import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramTypeArgResolver;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;

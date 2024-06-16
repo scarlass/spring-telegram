@@ -1,6 +1,6 @@
 package dev.scaraz.lib.spring.telegram.bind;
 
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.MessageSource;
+import dev.scaraz.lib.spring.telegram.bind.enums.MessageSource;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;

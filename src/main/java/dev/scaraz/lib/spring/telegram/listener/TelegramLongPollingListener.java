@@ -2,9 +2,9 @@ package dev.scaraz.lib.spring.telegram.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.scaraz.mars.v2.lib.telegram.TelegramProperties;
-import dev.scaraz.mars.v2.lib.telegram.config.TelegramContextHolder;
-import dev.scaraz.mars.v2.lib.telegram.config.TelegramUpdateProcessor;
+import dev.scaraz.lib.spring.telegram.TelegramProperties;
+import dev.scaraz.lib.spring.telegram.config.TelegramContextHolder;
+import dev.scaraz.lib.spring.telegram.config.TelegramUpdateProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

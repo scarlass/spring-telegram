@@ -1,9 +1,10 @@
 package dev.scaraz.lib.spring.telegram.config.process;
 
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramCmdMessage;
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramHandler;
-import dev.scaraz.mars.v2.lib.telegram.bind.enums.ChatSource;
-import dev.scaraz.mars.v2.lib.telegram.config.TelegramHandlerRegistry;
+
+import dev.scaraz.lib.spring.telegram.bind.TelegramCmdMessage;
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandler;
+import dev.scaraz.lib.spring.telegram.bind.enums.ChatSource;
+import dev.scaraz.lib.spring.telegram.config.TelegramHandlerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,11 +1,12 @@
 package dev.scaraz.lib.spring.telegram.config;
 
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramHandler;
-import dev.scaraz.mars.v2.lib.telegram.bind.TelegramInterceptor;
-import dev.scaraz.mars.v2.lib.telegram.bind.handler.HandlerCallbackQuery;
-import dev.scaraz.mars.v2.lib.telegram.bind.handler.HandlerCommand;
-import dev.scaraz.mars.v2.lib.telegram.bind.handler.HandlerMessage;
-import dev.scaraz.mars.v2.lib.telegram.bind.handler.TelegramController;
+
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandler;
+import dev.scaraz.lib.spring.telegram.bind.TelegramInterceptor;
+import dev.scaraz.lib.spring.telegram.bind.handler.HandlerCallbackQuery;
+import dev.scaraz.lib.spring.telegram.bind.handler.HandlerCommand;
+import dev.scaraz.lib.spring.telegram.bind.handler.HandlerMessage;
+import dev.scaraz.lib.spring.telegram.bind.handler.TelegramController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
