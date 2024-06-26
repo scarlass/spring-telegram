@@ -7,6 +7,7 @@ import dev.scaraz.lib.spring.telegram.config.TelegramContextHolder;
 import dev.scaraz.lib.spring.telegram.config.TelegramUpdateProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -25,19 +26,12 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import java.util.List;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(
-        prefix = "telegram",
-        name = "type",
-        havingValue = "long_polling")
 public class TelegramLongPollingListener implements LongPollingUpdateConsumer {
 
     private final ObjectMapper objectMapper;
     private final TelegramClient telegramClient;
-    private final TelegramProperties telegramProperties;
     private final TelegramUpdateProcessor telegramUpdateProcessor;
-    private final TelegramBotsLongPollingApplication telegramBotsLongPollingApplication;
 
     private final TaskExecutor executor = new VirtualThreadTaskExecutor("tg-update-");
 
@@ -82,9 +76,4 @@ public class TelegramLongPollingListener implements LongPollingUpdateConsumer {
         }
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void onApplicationReady() throws TelegramApiException {
-        telegramBotsLongPollingApplication.registerBot(telegramProperties.getToken(), this);
-        log.info("Telegram long-polling started");
-    }
 }

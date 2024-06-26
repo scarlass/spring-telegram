@@ -112,14 +112,10 @@ public class TelegramUpdateProcessor {
                                           UpdateType type,
                                           Update update,
                                           UpdateProcessor processor) {
-        context.setAttribute(TelegramContext.handler_type, type);
+        context.setAttribute(TelegramContext.update_type, type);
+        context.setAttribute(TelegramContext.handler_type, HandlerType.from(type));
         switch (type) {
-            case MESSAGE -> {
-                context.setAttribute(TelegramContext.chat_id, processor.getChatId(update));
-                context.setAttribute(TelegramContext.chat_source, processor.getChatSource(update));
-                context.setAttribute(TelegramContext.user_from, processor.getUserFrom(update));
-            }
-            case CALLBACK_QUERY -> {
+            case MESSAGE, CALLBACK_QUERY -> {
                 context.setAttribute(TelegramContext.chat_id, processor.getChatId(update));
                 context.setAttribute(TelegramContext.chat_source, processor.getChatSource(update));
                 context.setAttribute(TelegramContext.user_from, processor.getUserFrom(update));
