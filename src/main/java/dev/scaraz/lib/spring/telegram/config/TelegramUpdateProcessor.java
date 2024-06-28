@@ -100,8 +100,7 @@ public class TelegramUpdateProcessor {
                     ti.postProcess(context, executor, result);
             }
         }
-        catch (Exception ex) {
-            log.warn("Execution error:", ex);
+        catch (Throwable ex) {
             return handleInvocationException(ex, context, executor);
         }
     }
@@ -125,7 +124,7 @@ public class TelegramUpdateProcessor {
 
     protected Optional<PartialBotApiMethod<?>> invokeMethod(TelegramContext context,
                                                             TelegramHandlerExecutor executor,
-                                                            Object[] args) throws Exception {
+                                                            Object[] args) throws Throwable {
         Method method = executor.getHandler().getMethod();
         Class<?> returnType = method.getReturnType();
         try {
@@ -142,7 +141,7 @@ public class TelegramUpdateProcessor {
             }
         }
         catch (InvocationTargetException e) {
-            if (e.getCause() != null) throw new RuntimeException(e.getCause());
+            if (e.getCause() != null) throw e.getCause();
             throw new RuntimeException(e);
         }
 
