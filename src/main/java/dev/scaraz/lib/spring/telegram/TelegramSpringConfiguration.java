@@ -1,16 +1,19 @@
 package dev.scaraz.lib.spring.telegram;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.scaraz.lib.spring.telegram.bind.TelegramExceptionHandler;
 import dev.scaraz.lib.spring.telegram.config.TelegramUpdateProcessor;
 import dev.scaraz.lib.spring.telegram.listener.TelegramLongPollingListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -37,6 +40,10 @@ import java.util.concurrent.ThreadFactory;
 })
 public class TelegramSpringConfiguration {
 
+    private static ObjectMapper getOrDefault(ObjectProvider<ObjectMapper> objectMapper) {
+        return objectMapper.getIfAvailable(ObjectMapper::new);
+    }
+
     private final TelegramProperties telegramProperties;
 
     @Bean
@@ -45,9 +52,9 @@ public class TelegramSpringConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(ObjectMapper.class)
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+    @ConditionalOnMissingBean
+    public TelegramExceptionHandler telegramExceptionHandler() {
+        return new DefaultExceptionHandler();
     }
 
     @Bean
@@ -57,9 +64,9 @@ public class TelegramSpringConfiguration {
             havingValue = "long_polling",
             matchIfMissing = true)
     @ConditionalOnMissingBean(TelegramBotsLongPollingApplication.class)
-    public TelegramBotsLongPollingApplication telegramBotsLongPollingApplication() {
+    public TelegramBotsLongPollingApplication telegramBotsLongPollingApplication(ObjectProvider<ObjectMapper> objectMapper) {
         return new TelegramBotsLongPollingApplication(
-                this::objectMapper,
+                () -> getOrDefault(objectMapper),
                 new TelegramOkHttpClientFactory.DefaultOkHttpClientCreator(),
 //                Executors::newSingleThreadScheduledExecutor,
                 this::scheduledExecutorService,
@@ -89,7 +96,7 @@ public class TelegramSpringConfiguration {
             matchIfMissing = true)
     static class StartBotListener implements ApplicationListener<ApplicationReadyEvent> {
 
-        private final ObjectMapper objectMapper;
+        private final ApplicationContext applicationContext;
         private final TelegramClient telegramClient;
         private final TelegramProperties telegramProperties;
         private final TelegramUpdateProcessor telegramUpdateProcessor;
@@ -98,7 +105,9 @@ public class TelegramSpringConfiguration {
 
         @Override
         public void onApplicationEvent(ApplicationReadyEvent event) {
-            TelegramLongPollingListener listener = new TelegramLongPollingListener(objectMapper, telegramClient, telegramUpdateProcessor);
+            ObjectProvider<ObjectMapper> om = applicationContext.getBeanProvider(ObjectMapper.class);
+
+            TelegramLongPollingListener listener = new TelegramLongPollingListener(getOrDefault(om), telegramClient, telegramUpdateProcessor);
 
             try {
                 telegramBotsLongPollingApplication.registerBot(telegramProperties.getToken(), listener);

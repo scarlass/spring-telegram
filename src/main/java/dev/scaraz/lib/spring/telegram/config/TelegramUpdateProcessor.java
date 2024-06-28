@@ -2,10 +2,7 @@ package dev.scaraz.lib.spring.telegram.config;
 
 
 import dev.scaraz.lib.spring.telegram.TelegramUtil;
-import dev.scaraz.lib.spring.telegram.bind.TelegramCmdMessage;
-import dev.scaraz.lib.spring.telegram.bind.TelegramHandler;
-import dev.scaraz.lib.spring.telegram.bind.TelegramHandlerExecutor;
-import dev.scaraz.lib.spring.telegram.bind.TelegramInterceptor;
+import dev.scaraz.lib.spring.telegram.bind.*;
 import dev.scaraz.lib.spring.telegram.bind.enums.HandlerType;
 import dev.scaraz.lib.spring.telegram.bind.enums.UpdateType;
 import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramAnnotationArgResolver;
@@ -35,6 +32,7 @@ public class TelegramUpdateProcessor {
 
     private final TelegramHandlerRegistry handlerRegistry;
     private final TelegramArgResolverRegistry argResolverRegistry;
+    private final TelegramExceptionHandler exceptionHandler;
 
     private final MessageUpdateProcessor messageUpdateProcess;
     private final CallbackQueryUpdateProcessor callbackQueryUpdateProcess;
@@ -114,15 +112,15 @@ public class TelegramUpdateProcessor {
                                           UpdateProcessor processor) {
         context.setAttribute(TelegramContext.update_type, type);
         context.setAttribute(TelegramContext.handler_type, HandlerType.from(type));
-        switch (type) {
-            case MESSAGE, CALLBACK_QUERY -> {
-                context.setAttribute(TelegramContext.chat_id, processor.getChatId(update));
-                context.setAttribute(TelegramContext.chat_source, processor.getChatSource(update));
-                context.setAttribute(TelegramContext.user_from, processor.getUserFrom(update));
-            }
-            default -> {
-            }
-        }
+        context.setAttribute(TelegramContext.chat_id, processor.getChatId(update));
+        context.setAttribute(TelegramContext.chat_source, processor.getChatSource(update));
+        context.setAttribute(TelegramContext.user_from, processor.getUserFrom(update));
+//        switch (type) {
+//            case MESSAGE, CALLBACK_QUERY -> {
+//            }
+//            default -> {
+//            }
+//        }
     }
 
     protected Optional<PartialBotApiMethod<?>> invokeMethod(TelegramContext context,
@@ -154,11 +152,7 @@ public class TelegramUpdateProcessor {
     protected Optional<PartialBotApiMethod<?>> handleInvocationException(Throwable ex,
                                                                          TelegramContext context,
                                                                          TelegramHandlerExecutor executor) {
-        return Optional.of(SendMessage.builder()
-                .chatId(context.getChatId())
-                .parseMode(ParseMode.MARKDOWNV2)
-                .text(TelegramUtil.exception(ex))
-                .build());
+        return Optional.of(exceptionHandler.catchException(context, executor, ex));
     }
 
     protected Collection<TelegramInterceptor> interceptExecution(TelegramContext context, TelegramHandlerExecutor executor) {
