@@ -7,8 +7,6 @@ import dev.scaraz.lib.spring.telegram.listener.TelegramLongPollingListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -18,7 +16,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.longpolling.util.ExponentialBackOff;
@@ -42,13 +39,6 @@ public class TelegramSpringConfiguration {
 
     private static ObjectMapper getOrDefault(ObjectProvider<ObjectMapper> objectMapper) {
         return objectMapper.getIfAvailable(ObjectMapper::new);
-    }
-
-    private final TelegramProperties telegramProperties;
-
-    @Bean
-    public TelegramClient telegramClient() {
-        return new OkHttpTelegramClient(telegramProperties.getToken());
     }
 
     @Bean

@@ -17,6 +17,7 @@ public final class TelegramContext {
     public static final String chat_id = "int:CHAT_ID";
     public static final String chat_source = "int:CHAT_SOURCE";
     public static final String message = "int:MESSAGE";
+    public static final String end_with_error = "bool:ERROR_EXECUTION";
 
     TelegramContext(Update update) {
         this.update = update;
@@ -45,11 +46,17 @@ public final class TelegramContext {
     public User getUserFrom() {
         return (User) attribute.get(user_from);
     }
+
     public Long getChatId() {
         return (Long) attribute.get(chat_id);
     }
+
     public ChatSource getChatSource() {
         return (ChatSource) attribute.get(chat_source);
+    }
+
+    public boolean hasErrorExecution() {
+        return (boolean) attribute.getOrDefault(end_with_error, false);
     }
 
 }

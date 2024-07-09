@@ -9,9 +9,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import({
-        TelegramClientConfiguration.class,
-        TelegramSpringConfiguration.class
-})
-public @interface EnableTelegramBot {
+@Import(TelegramClientConfiguration.class)
+public @interface EnableTelegramClient {
 }

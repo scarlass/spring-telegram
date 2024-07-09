@@ -93,7 +93,12 @@ public class TelegramUpdateProcessor {
             try {
                 Object[] arguments = mapArgument(context, executor);
                 result = invokeMethod(context, executor, arguments);
+                context.setAttribute(TelegramContext.end_with_error, false);
                 return result;
+            }
+            catch (Throwable ex) {
+                context.setAttribute(TelegramContext.end_with_error, true);
+                throw ex;
             }
             finally {
                 for (TelegramInterceptor ti : allowExecution)
