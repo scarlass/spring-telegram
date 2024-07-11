@@ -20,7 +20,7 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-public class TelegramLongPollingListener implements LongPollingUpdateConsumer {
+public class DefaultLongPollingConsumer implements LongPollingUpdateConsumer {
 
     private final ObjectMapper objectMapper;
     private final TelegramClient telegramClient;

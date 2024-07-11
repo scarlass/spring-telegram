@@ -3,7 +3,7 @@ package dev.scaraz.lib.spring.telegram;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.scaraz.lib.spring.telegram.bind.TelegramExceptionHandler;
 import dev.scaraz.lib.spring.telegram.config.TelegramUpdateProcessor;
-import dev.scaraz.lib.spring.telegram.listener.TelegramLongPollingListener;
+import dev.scaraz.lib.spring.telegram.listener.DefaultLongPollingConsumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -16,6 +16,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.longpolling.util.ExponentialBackOff;
@@ -58,7 +59,6 @@ public class TelegramSpringConfiguration {
         return new TelegramBotsLongPollingApplication(
                 () -> getOrDefault(objectMapper),
                 new TelegramOkHttpClientFactory.DefaultOkHttpClientCreator(),
-//                Executors::newSingleThreadScheduledExecutor,
                 this::scheduledExecutorService,
                 ExponentialBackOff::new
         ) {
@@ -97,7 +97,7 @@ public class TelegramSpringConfiguration {
         public void onApplicationEvent(ApplicationReadyEvent event) {
             ObjectProvider<ObjectMapper> om = applicationContext.getBeanProvider(ObjectMapper.class);
 
-            TelegramLongPollingListener listener = new TelegramLongPollingListener(getOrDefault(om), telegramClient, telegramUpdateProcessor);
+            DefaultLongPollingConsumer listener = new DefaultLongPollingConsumer(getOrDefault(om), telegramClient, telegramUpdateProcessor);
 
             try {
                 telegramBotsLongPollingApplication.registerBot(telegramProperties.getToken(), listener);
