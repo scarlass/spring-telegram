@@ -1,5 +1,7 @@
 package dev.scaraz.lib.spring.telegram.config;
 
+import org.telegram.telegrambots.meta.api.objects.Update;
+
 public final class TelegramContextHolder {
     static final ThreadLocal<TelegramContext> contextAttribute = new InheritableThreadLocal<>();
 
@@ -17,6 +19,19 @@ public final class TelegramContextHolder {
 
     public static boolean isAvailable() {
         return contextAttribute.get() != null;
+    }
+
+
+    public static Runnable wrap(Update update, Runnable runnable) {
+        return () -> {
+            setContext(new TelegramContext(update));
+            try {
+                runnable.run();
+            }
+            finally {
+                clearContext();
+            }
+        };
     }
 
 }

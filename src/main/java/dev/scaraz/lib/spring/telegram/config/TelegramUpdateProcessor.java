@@ -46,8 +46,7 @@ public class TelegramUpdateProcessor {
     }
 
     public Optional<PartialBotApiMethod<?>> process(Update update) {
-        TelegramContext context = new TelegramContext(update);
-        TelegramContextHolder.setContext(context);
+        TelegramContext context = TelegramContextHolder.getContext();
 
         UpdateType type = getUpdateType(update);
         log.debug("Process Update type - {}", type);
