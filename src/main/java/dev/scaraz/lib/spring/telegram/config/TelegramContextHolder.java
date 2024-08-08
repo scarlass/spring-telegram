@@ -2,7 +2,12 @@ package dev.scaraz.lib.spring.telegram.config;
 
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.function.Consumer;
+
+import static dev.scaraz.lib.spring.telegram.config.TelegramUpdateProcessor.applyContextAttribute;
+
 public final class TelegramContextHolder {
+
     static final ThreadLocal<TelegramContext> contextAttribute = new InheritableThreadLocal<>();
 
     public static void setContext(TelegramContext context) {
@@ -22,11 +27,12 @@ public final class TelegramContextHolder {
     }
 
 
-    public static Runnable wrap(Update update, Runnable runnable) {
+    public static Runnable wrap(Update update, Consumer<TelegramContext> runnable) {
         return () -> {
             setContext(new TelegramContext(update));
+            applyContextAttribute(getContext());
             try {
-                runnable.run();
+                runnable.accept(getContext());
             }
             finally {
                 clearContext();

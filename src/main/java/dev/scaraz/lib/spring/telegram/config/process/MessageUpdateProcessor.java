@@ -3,10 +3,14 @@ package dev.scaraz.lib.spring.telegram.config.process;
 
 import dev.scaraz.lib.spring.telegram.bind.TelegramCmdMessage;
 import dev.scaraz.lib.spring.telegram.bind.TelegramHandler;
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandlerExecutor;
 import dev.scaraz.lib.spring.telegram.bind.enums.ChatSource;
+import dev.scaraz.lib.spring.telegram.bind.enums.UpdateType;
+import dev.scaraz.lib.spring.telegram.config.TelegramContext;
 import dev.scaraz.lib.spring.telegram.config.TelegramHandlerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -17,6 +21,7 @@ import java.util.Optional;
 
 @Slf4j
 @Component
+@Order(Integer.MIN_VALUE)
 @RequiredArgsConstructor
 public class MessageUpdateProcessor extends UpdateProcessor {
 
@@ -37,6 +42,16 @@ public class MessageUpdateProcessor extends UpdateProcessor {
 
         log.debug("using default message handler - if any");
         return Optional.ofNullable(registry.getDefaultMessageHandler());
+    }
+
+    @Override
+    public void additionalHandlerProcess(TelegramContext context, TelegramHandlerExecutor executor) {
+        executor.setCommand(new TelegramCmdMessage(context.getUpdate()));
+    }
+
+    @Override
+    public UpdateType type() {
+        return UpdateType.MESSAGE;
     }
 
     @Override

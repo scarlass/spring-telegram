@@ -31,7 +31,7 @@ public class DefaultLongPollingConsumer implements LongPollingUpdateConsumer {
     @Override
     public void consume(List<Update> list) {
         for (Update update : list) {
-            executor.execute(TelegramContextHolder.wrap(update, () -> {
+            executor.execute(TelegramContextHolder.wrap(update, (context) -> {
                 try {
                     if (log.isDebugEnabled())
                         log.debug("Received update - {}", objectMapper.writeValueAsString(update));
@@ -41,7 +41,7 @@ public class DefaultLongPollingConsumer implements LongPollingUpdateConsumer {
                 catch (JsonProcessingException e) {
                 }
 
-                telegramUpdateProcessor.process(update);
+                telegramUpdateProcessor.process(update).ifPresent(this::reply);
             }));
         }
     }

@@ -3,9 +3,11 @@ package dev.scaraz.lib.spring.telegram.config.process;
 
 import dev.scaraz.lib.spring.telegram.bind.TelegramHandler;
 import dev.scaraz.lib.spring.telegram.bind.enums.ChatSource;
+import dev.scaraz.lib.spring.telegram.bind.enums.UpdateType;
 import dev.scaraz.lib.spring.telegram.config.TelegramHandlerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -15,6 +17,7 @@ import java.util.Optional;
 
 @Slf4j
 @Component
+@Order(Integer.MIN_VALUE)
 @RequiredArgsConstructor
 public class CallbackQueryUpdateProcessor extends UpdateProcessor {
 
@@ -33,6 +36,11 @@ public class CallbackQueryUpdateProcessor extends UpdateProcessor {
 
         log.debug("using default callback query handler - if any");
         return Optional.ofNullable(registry.getDefaultCallbackQueryHandler());
+    }
+
+    @Override
+    public UpdateType type() {
+        return UpdateType.CALLBACK_QUERY;
     }
 
     @Override

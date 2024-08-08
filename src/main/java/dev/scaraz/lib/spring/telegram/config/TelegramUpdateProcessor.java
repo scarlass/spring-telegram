@@ -1,23 +1,24 @@
 package dev.scaraz.lib.spring.telegram.config;
 
 
-import dev.scaraz.lib.spring.telegram.TelegramUtil;
-import dev.scaraz.lib.spring.telegram.bind.*;
+import dev.scaraz.lib.spring.telegram.bind.TelegramExceptionHandler;
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandler;
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandlerExecutor;
+import dev.scaraz.lib.spring.telegram.bind.TelegramInterceptor;
 import dev.scaraz.lib.spring.telegram.bind.enums.HandlerType;
 import dev.scaraz.lib.spring.telegram.bind.enums.UpdateType;
 import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramAnnotationArgResolver;
+import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramArgResolver;
 import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramTypeArgResolver;
-import dev.scaraz.lib.spring.telegram.config.process.CallbackQueryUpdateProcessor;
-import dev.scaraz.lib.spring.telegram.config.process.MessageUpdateProcessor;
 import dev.scaraz.lib.spring.telegram.config.process.UpdateProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.lang.reflect.InvocationTargetException;
@@ -28,16 +29,17 @@ import java.util.stream.IntStream;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TelegramUpdateProcessor {
+public class TelegramUpdateProcessor implements InitializingBean {
+
+    static TelegramUpdateProcessor instance;
 
     private final TelegramHandlerRegistry handlerRegistry;
     private final TelegramArgResolverRegistry argResolverRegistry;
+    private final TelegramUpdateProcessorRegistry updateProcessorRegistry;
+
     private final TelegramExceptionHandler exceptionHandler;
 
-    private final MessageUpdateProcessor messageUpdateProcess;
-    private final CallbackQueryUpdateProcessor callbackQueryUpdateProcess;
-
-    protected UpdateType getUpdateType(Update update) {
+    protected static UpdateType getUpdateType(Update update) {
         if (update.hasMessage())
             return UpdateType.MESSAGE;
         else if (update.hasCallbackQuery())
@@ -45,41 +47,47 @@ public class TelegramUpdateProcessor {
         return null;
     }
 
-    public Optional<PartialBotApiMethod<?>> process(Update update) {
-        TelegramContext context = TelegramContextHolder.getContext();
+    public static void applyContextAttribute(TelegramContext context) {
+        if (instance == null) return;
+        Assert.notNull(context.getUpdate(), "Telegram context update is null");
 
+        Update update = context.getUpdate();
         UpdateType type = getUpdateType(update);
-        log.debug("Process Update type - {}", type);
+        UpdateProcessor processor = instance.updateProcessorRegistry.getProcessor(type);
 
         context.setAttribute(TelegramContext.update_type, type);
+        if (processor == null) return;
 
-        UpdateProcessor processor;
-        TelegramHandlerExecutor executor;
-        Optional<TelegramHandler> handler;
-        switch (type) {
-            case MESSAGE -> {
-                log.debug("Processing Update Message");
-                processor = messageUpdateProcess;
-                handler = messageUpdateProcess.getHandler(update);
-                if (handler.isEmpty()) return noHandlerCanProcess();
+        context.setAttribute(TelegramContext.initialized, true);
+        context.setAttribute(TelegramContext.processor, processor);
+        context.setAttribute(TelegramContext.handler_type, HandlerType.from(type));
+        context.setAttribute(TelegramContext.chat_id, processor.getChatId(update));
+        context.setAttribute(TelegramContext.chat_source, processor.getChatSource(update));
+        context.setAttribute(TelegramContext.user_from, processor.getUserFrom(update));
+    }
 
-                executor = new TelegramHandlerExecutor(type, handler.get());
-                executor.setCommand(new TelegramCmdMessage(update));
-            }
-            case CALLBACK_QUERY -> {
-                log.debug("Processing Update CallbackQuery");
-                processor = callbackQueryUpdateProcess;
-                handler = callbackQueryUpdateProcess.getHandler(update);
-                if (handler.isEmpty()) return noHandlerCanProcess();
+    @Override
+    public void afterPropertiesSet() {
+        instance = this;
+    }
 
-                executor = new TelegramHandlerExecutor(type, handler.get());
-            }
-            default -> {
-                return Optional.empty();
-            }
-        }
+    public Optional<PartialBotApiMethod<?>> process(Update update) {
+        TelegramContext context = TelegramContextHolder.getContext();
+        if (!context.isInitialized())
+            throw new IllegalStateException("Telegram context is not initialized");
 
-        assignContextAttribute(context, type, update, processor);
+
+        UpdateType type = context.getUpdateType();
+        log.debug("Process Update type - {}", type);
+
+        UpdateProcessor processor = context.getProcessor();
+        if (processor == null) return noHandlerCanProcess();
+
+        Optional<TelegramHandler> handler = processor.getHandler(update);
+        if (handler.isEmpty()) return noHandlerCanProcess();
+
+        TelegramHandlerExecutor executor = new TelegramHandlerExecutor(type, handler.get());
+        processor.additionalHandlerProcess(context, executor);
 
         try {
             log.debug("Interceptor check");
@@ -91,7 +99,7 @@ public class TelegramUpdateProcessor {
             Optional<PartialBotApiMethod<?>> result = Optional.empty();
             try {
                 Object[] arguments = mapArgument(context, executor);
-                result = invokeMethod(context, executor, arguments);
+                result = invokeMethod(executor, arguments);
                 context.setAttribute(TelegramContext.end_with_error, false);
                 return result;
             }
@@ -109,25 +117,7 @@ public class TelegramUpdateProcessor {
         }
     }
 
-    protected void assignContextAttribute(TelegramContext context,
-                                          UpdateType type,
-                                          Update update,
-                                          UpdateProcessor processor) {
-        context.setAttribute(TelegramContext.update_type, type);
-        context.setAttribute(TelegramContext.handler_type, HandlerType.from(type));
-        context.setAttribute(TelegramContext.chat_id, processor.getChatId(update));
-        context.setAttribute(TelegramContext.chat_source, processor.getChatSource(update));
-        context.setAttribute(TelegramContext.user_from, processor.getUserFrom(update));
-//        switch (type) {
-//            case MESSAGE, CALLBACK_QUERY -> {
-//            }
-//            default -> {
-//            }
-//        }
-    }
-
-    protected Optional<PartialBotApiMethod<?>> invokeMethod(TelegramContext context,
-                                                            TelegramHandlerExecutor executor,
+    protected Optional<PartialBotApiMethod<?>> invokeMethod(TelegramHandlerExecutor executor,
                                                             Object[] args) throws Throwable {
         Method method = executor.getHandler().getMethod();
         Class<?> returnType = method.getReturnType();
@@ -135,10 +125,8 @@ public class TelegramUpdateProcessor {
             Object invoke = method.invoke(executor.getHandler().getBean(), args);
             if (ClassUtils.isAssignable(Void.class, returnType))
                 return Optional.empty();
-            else if (ClassUtils.isAssignable(PartialBotApiMethod.class, returnType)) {
-
+            else if (ClassUtils.isAssignable(PartialBotApiMethod.class, returnType))
                 return Optional.ofNullable((PartialBotApiMethod<?>) invoke);
-            }
             else {
                 // TODO: Return Type Resolver ?
                 log.warn("Unsupported Handler return type");
@@ -183,6 +171,14 @@ public class TelegramUpdateProcessor {
                                            TelegramContext context,
                                            TelegramHandlerExecutor executor
     ) {
+        if (executor.getHandler().getParameterResolver(index) != null) {
+            TelegramArgResolver resolver = executor.getHandler().getParameterResolver(index);
+            if (resolver instanceof TelegramAnnotationArgResolver ant)
+                return resolveArgument(context, executor, executor.getParameter(index), ant);
+            else if (resolver instanceof TelegramTypeArgResolver<?> arg)
+                return resolveArgument(context, executor, executor.getParameter(index), arg);
+        }
+
         MethodParameter parameter = executor.getParameter(index);
         Method method = parameter.getMethod();
         Class<?> parameterType = parameter.getParameterType();
@@ -201,19 +197,8 @@ public class TelegramUpdateProcessor {
                         .filter(r -> hasSupportedAnnotations(parameter, r))
                         .findFirst();
 
-                if (resolverOptional.isPresent()) {
-                    Object value = resolverOptional.get().resolve(context, index, executor);
-                    if (value != null) {
-                        if (ClassUtils.isAssignable(value.getClass(), parameterType))
-                            return value;
-                        throw new IllegalArgumentException(String.format("Invalid parameter type (%s), resolver return type (%s) are different from declared type.",
-                                parameterType,
-                                value.getClass()
-                        ));
-                    }
-
-                    return null;
-                }
+                if (resolverOptional.isPresent())
+                    return resolveArgument(context, executor, parameter, resolverOptional.get());
             }
         }
         else {
@@ -230,7 +215,7 @@ public class TelegramUpdateProcessor {
                         .findFirst();
 
                 if (resolverOptional.isPresent())
-                    return resolverOptional.get().resolve(context, index, executor);
+                    return resolveArgument(context, executor, parameter, resolverOptional.get());
             }
         }
 
@@ -241,6 +226,33 @@ public class TelegramUpdateProcessor {
                 method.getName(),
                 index
         ));
+    }
+
+    protected Object resolveArgument(TelegramContext context,
+                                     TelegramHandlerExecutor executor,
+                                     MethodParameter parameter,
+                                     TelegramAnnotationArgResolver resolver) {
+        executor.getHandler().setParameterResolver(parameter.getParameterIndex(), resolver);
+
+        Object value = resolver.resolve(context, parameter.getParameterIndex(), executor);
+        if (value != null) {
+            if (ClassUtils.isAssignable(value.getClass(), parameter.getParameterType()))
+                return value;
+            throw new IllegalArgumentException(String.format("Invalid parameter type (%s), resolver return class (%s) are different from parameter class.",
+                    parameter.getParameterType(),
+                    value.getClass()
+            ));
+        }
+
+        return null;
+    }
+
+    protected Object resolveArgument(TelegramContext context,
+                                     TelegramHandlerExecutor executor,
+                                     MethodParameter parameter,
+                                     TelegramTypeArgResolver<?> resolver) {
+        executor.getHandler().setParameterResolver(parameter.getParameterIndex(), resolver);
+        return resolver.resolve(context, parameter.getParameterIndex(), executor);
     }
 
     private boolean hasSupportedAnnotations(MethodParameter mp, TelegramAnnotationArgResolver resolver) {

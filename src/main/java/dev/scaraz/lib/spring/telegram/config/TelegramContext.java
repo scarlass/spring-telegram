@@ -3,6 +3,7 @@ package dev.scaraz.lib.spring.telegram.config;
 import dev.scaraz.lib.spring.telegram.bind.enums.ChatSource;
 import dev.scaraz.lib.spring.telegram.bind.enums.HandlerType;
 import dev.scaraz.lib.spring.telegram.bind.enums.UpdateType;
+import dev.scaraz.lib.spring.telegram.config.process.UpdateProcessor;
 import lombok.Getter;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -18,6 +19,8 @@ public final class TelegramContext {
     public static final String chat_source = "int:CHAT_SOURCE";
     public static final String message = "int:MESSAGE";
     public static final String end_with_error = "bool:ERROR_EXECUTION";
+    public static final String processor = "tg:UPDATE_PROCESSOR";
+    public static final String initialized = "bool:INITIALIZED";
 
     TelegramContext(Update update) {
         this.update = update;
@@ -57,6 +60,15 @@ public final class TelegramContext {
 
     public boolean hasErrorExecution() {
         return (boolean) attribute.getOrDefault(end_with_error, false);
+    }
+
+
+    boolean isInitialized() {
+        return Boolean.TRUE.equals(getAttribute(initialized));
+    }
+
+    UpdateProcessor getProcessor() {
+        return (UpdateProcessor) getAttribute(processor);
     }
 
 }
