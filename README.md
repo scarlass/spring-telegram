@@ -101,3 +101,69 @@ public class GeneralListener {
 
 }
 ```
+
+### Handler parameter resolver
+From the example above, each handler parameters are resolved base on its type or parameter annotation.
+You may add additional parameter resolver as `spring bean`.
+
+example parameter annotation resolver:
+
+```java
+import dev.scaraz.lib.spring.telegram.bind.TelegramHandlerExecutor;
+import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramAnnotationArgResolver;
+import dev.scaraz.lib.spring.telegram.bind.resolver.TelegramTypeArgResolver;
+import dev.scaraz.lib.spring.telegram.config.TelegramContext;
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.User;
+
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+@Component
+public class UserFullNameResolver implements TelegramAnnotationArgResolver {
+    public @interface FullName {
+    }
+
+    // specify supported annotation 
+    @Override
+    public List<Class<? extends Annotation>> supportedAnnotations() {
+        return List.of(FullName.class);
+    }
+
+    @Override
+    public String resolve(TelegramContext context, int index, TelegramHandlerExecutor execution) {
+        User user = switch (context.getHandlerType()) {
+            case ALL, MESSAGE -> context.getUpdate().getMessage()
+                    .getFrom();
+            case CALLBACK_QUERY -> context.getUpdate().getCallbackQuery()
+                    .getFrom();
+        };
+
+        return Stream.of(user.getFirstName(), user.getLastName())
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(" "));
+
+    }
+}
+```
+
+```java
+// in telegram controller
+
+import dev.scaraz.lib.spring.telegram.bind.handler.HandlerMessage;
+
+public class TelegramListener {
+
+    // ...
+    @HandlerMessage
+    public void message(@UserFullNameResolver.FullName String userFullName) {
+        // print user full name
+        System.out.println(userFullName);
+    }
+}
+
+```
