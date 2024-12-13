@@ -4,7 +4,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.function.Consumer;
 
-import static dev.scaraz.lib.spring.telegram.config.TelegramUpdateProcessor.applyContextAttribute;
+import static dev.scaraz.lib.spring.telegram.config.TelegramUpdateHandler.applyContextAttribute;
 
 public final class TelegramContextHolder {
 

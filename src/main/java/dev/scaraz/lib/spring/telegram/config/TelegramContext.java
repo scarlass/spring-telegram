@@ -63,9 +63,9 @@ public final class TelegramContext {
     }
 
 
-    boolean isInitialized() {
-        return Boolean.TRUE.equals(getAttribute(initialized));
-    }
+//    boolean isInitialized() {
+//        return Boolean.TRUE.equals(getAttribute(initialized));
+//    }
 
     UpdateProcessor getProcessor() {
         return (UpdateProcessor) getAttribute(processor);

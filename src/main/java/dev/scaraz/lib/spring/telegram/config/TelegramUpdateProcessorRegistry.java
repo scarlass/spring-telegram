@@ -14,7 +14,7 @@ import org.springframework.util.MultiValueMap;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-class TelegramUpdateProcessorRegistry implements BeanPostProcessor {
+public class TelegramUpdateProcessorRegistry implements BeanPostProcessor {
 
     private final MultiValueMap<UpdateType, UpdateProcessor> processors = new LinkedMultiValueMap<>();
 

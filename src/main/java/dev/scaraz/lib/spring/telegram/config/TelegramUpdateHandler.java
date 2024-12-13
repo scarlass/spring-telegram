@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.telegram.telegrambots.meta.api.methods.botapimethods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -29,54 +28,25 @@ import java.util.stream.IntStream;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TelegramUpdateProcessor implements InitializingBean {
+public class TelegramUpdateHandler implements InitializingBean {
 
-    static TelegramUpdateProcessor instance;
+    static TelegramUpdateHandler instance;
 
     private final TelegramHandlerRegistry handlerRegistry;
     private final TelegramArgResolverRegistry argResolverRegistry;
-    private final TelegramUpdateProcessorRegistry updateProcessorRegistry;
-
     private final TelegramExceptionHandler exceptionHandler;
-
-    protected static UpdateType getUpdateType(Update update) {
-        if (update.hasMessage())
-            return UpdateType.MESSAGE;
-        else if (update.hasCallbackQuery())
-            return UpdateType.CALLBACK_QUERY;
-        return null;
-    }
-
-    public static void applyContextAttribute(TelegramContext context) {
-        if (instance == null) return;
-        Assert.notNull(context.getUpdate(), "Telegram context update is null");
-
-        Update update = context.getUpdate();
-        UpdateType type = getUpdateType(update);
-        UpdateProcessor processor = instance.updateProcessorRegistry.getProcessor(type);
-
-        context.setAttribute(TelegramContext.update_type, type);
-        if (processor == null) return;
-
-        context.setAttribute(TelegramContext.initialized, true);
-        context.setAttribute(TelegramContext.processor, processor);
-        context.setAttribute(TelegramContext.handler_type, HandlerType.from(type));
-        context.setAttribute(TelegramContext.chat_id, processor.getChatId(update));
-        context.setAttribute(TelegramContext.chat_source, processor.getChatSource(update));
-        context.setAttribute(TelegramContext.user_from, processor.getUserFrom(update));
-    }
 
     @Override
     public void afterPropertiesSet() {
         instance = this;
     }
 
+    @Deprecated
     public Optional<PartialBotApiMethod<?>> process(Update update) {
-        TelegramContext context = TelegramContextHolder.getContext();
-        if (!context.isInitialized())
-            throw new IllegalStateException("Telegram context is not initialized");
+        return process(TelegramContextHolder.getContext(), update);
+    }
 
-
+    public Optional<PartialBotApiMethod<?>> process(TelegramContext context, Update update) {
         UpdateType type = context.getUpdateType();
         log.debug("Process Update type - {}", type);
 
