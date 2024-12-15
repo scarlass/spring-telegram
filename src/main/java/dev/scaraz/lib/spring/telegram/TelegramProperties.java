@@ -11,4 +11,12 @@ public class TelegramProperties {
     private BotType type = BotType.LONG_POLLING;
     private String token;
     private String name;
+
+    private final LongPolling longPolling = new LongPolling();
+
+    @Getter
+    @Setter
+    public static class LongPolling {
+        private boolean startOnReady = true;
+    }
 }

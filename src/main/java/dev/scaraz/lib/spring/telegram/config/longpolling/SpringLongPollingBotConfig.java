@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.scaraz.lib.spring.telegram.TelegramProperties;
 import dev.scaraz.lib.spring.telegram.config.TelegramContextInitializer;
 import dev.scaraz.lib.spring.telegram.config.TelegramUpdateHandler;
-import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,9 +21,6 @@ import org.telegram.telegrambots.longpolling.util.TelegramOkHttpClientFactory;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,7 +30,9 @@ import java.util.concurrent.TimeUnit;
         name = "type",
         havingValue = "long_polling",
         matchIfMissing = true)
-public class TelegramLongPollingConfig {
+public class SpringLongPollingBotConfig {
+
+    private final TelegramProperties telegramProperties;
 
     @Bean
     public TelegramBotsLongPollingApplication telegramBotsLongPollingApplication(ObjectProvider<ObjectMapper> objectMapper,
@@ -77,39 +74,17 @@ public class TelegramLongPollingConfig {
                                                                            LongPollingUpdateConsumer updateConsumer) {
         return event -> {
             try {
+                if (!telegramProperties.getLongPolling().isStartOnReady()) {
+                    application.stop();
+                }
+
                 application.registerBot(telegramProperties.getToken(), updateConsumer);
             }
             catch (TelegramApiException e) {
                 throw new RuntimeException("unable to register long-polling consumer", e);
             }
-
-//            try {
-//                application.start();
-//            }
-//            catch (TelegramApiException e) {
-//                throw new RuntimeException("unable to start long-polling bot", e);
-//            }
         };
     }
 
-
-    private static class LongPollingExecutorService extends ScheduledThreadPoolExecutor {
-
-        private final ObservationRegistry observationRegistry;
-
-        public LongPollingExecutorService(int corePoolSize, ObservationRegistry observationRegistry) {
-            super(corePoolSize, Thread.ofVirtual().factory());
-            this.observationRegistry = observationRegistry;
-        }
-
-        @NotNull
-        @Override
-        public ScheduledFuture<?> scheduleAtFixedRate(@NotNull Runnable command, long initialDelay, long period, @NotNull TimeUnit unit) {
-            return super.scheduleAtFixedRate(() -> {
-                Observation observation = Observation.createNotStarted("telegram", observationRegistry);
-                observation.observe(command);
-            }, initialDelay, period, unit);
-        }
-    }
 
 }

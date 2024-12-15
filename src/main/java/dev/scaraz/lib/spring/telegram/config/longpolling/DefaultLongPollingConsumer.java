@@ -6,6 +6,7 @@ import dev.scaraz.lib.spring.telegram.config.TelegramContextInitializer;
 import dev.scaraz.lib.spring.telegram.config.TelegramUpdateHandler;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -31,11 +32,11 @@ public class DefaultLongPollingConsumer implements LongPollingUpdateConsumer, In
     protected final LongPollingReplier longPollingReplier;
 
     @Setter
-    @Getter
+    @Getter(AccessLevel.PROTECTED)
     private ExecutorService updateExecutor;
 
     @Setter
-    @Getter
+    @Getter(AccessLevel.PROTECTED)
     private ObjectProvider<ObservationRegistry> observationRegistries;
 
     @Override

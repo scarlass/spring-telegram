@@ -12,7 +12,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-class LongPollingReplier {
+public class LongPollingReplier {
 
     private final TelegramClient telegramClient;
 
