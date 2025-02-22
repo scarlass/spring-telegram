@@ -20,6 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 @Slf4j
 //@Component
@@ -44,15 +45,26 @@ public class DefaultLongPollingConsumer implements LongPollingUpdateConsumer, In
         if (updateExecutor == null) {
             updateExecutor = Executors.newVirtualThreadPerTaskExecutor();
         }
+
+        observationRegistries.ifAvailable(obs -> {
+            log.trace("include observation registry for tracing");
+        });
     }
 
     @Override
     public void consume(List<Update> updates) {
-        for (Update update : updates) {
-            updateExecutor.execute(() -> {
+        startObservationIfAvailable(observation -> {
+            updates.forEach(update -> updateExecutor.execute(() -> {
                 try {
                     TelegramContext context = telegramContextInitializer.prepare(update);
-                    startObservation(context, update);
+                    attachObservationContext(context, update, observation);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("received update - {}", update);
+                    } else {
+                        log.info("received update - {}", update.getUpdateId());
+                    }
+
                     telegramUpdateHandler
                             .process(context, update)
                             .ifPresent(longPollingReplier::reply);
@@ -60,24 +72,32 @@ public class DefaultLongPollingConsumer implements LongPollingUpdateConsumer, In
                 finally {
                     TelegramContextHolder.clearContext();
                 }
-            });
+            }));
+        });
+    }
+
+    protected void attachObservationContext(TelegramContext context, Update update, Observation observation) {
+        if (observation != null) {
+            observation.lowCardinalityKeyValue("tg_update_id", String.valueOf(update.getUpdateId()));
+            MDC.put("tg_update_id", String.valueOf(update.getUpdateId()));
+
+            observation.lowCardinalityKeyValue("tg_chat_id", String.valueOf(context.getChatId()));
+            MDC.put("tg_chat_id", String.valueOf(context.getChatId()));
+
+            observation.lowCardinalityKeyValue("tg_user_id", String.valueOf(context.getUserFrom().getId()));
+            MDC.put("tg_user_id", String.valueOf(context.getUserFrom().getId()));
         }
     }
 
-    protected void startObservation(TelegramContext context, Update update) {
-        observationRegistries.ifAvailable(registry -> {
-            Observation observation = registry.getCurrentObservation();
-            if (observation != null) {
-                observation.lowCardinalityKeyValue("tg_update_id", String.valueOf(update.getUpdateId()));
-                MDC.put("tg_update_id", String.valueOf(update.getUpdateId()));
-
-                observation.lowCardinalityKeyValue("tg_chat_id", String.valueOf(context.getChatId()));
-                MDC.put("tg_chat_id", String.valueOf(context.getChatId()));
-
-                observation.lowCardinalityKeyValue("tg_user_id", String.valueOf(context.getUserFrom().getId()));
-                MDC.put("tg_user_id", String.valueOf(context.getUserFrom().getId()));
-            }
-        });
+    protected void startObservationIfAvailable(Consumer<Observation> runnable) {
+        ObservationRegistry observationRegistry = observationRegistries.getIfAvailable();
+        if (observationRegistry != null) {
+            Observation obs = Observation.createNotStarted("telegram-updates", observationRegistry);
+            runnable.accept(obs);
+        }
+        else {
+            runnable.accept(null);
+        }
     }
 
 }

@@ -69,13 +69,21 @@ public class SpringLongPollingBotConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(
+            prefix = "spring.telegram.long-polling",
+            name = "manual-register-setup",
+            havingValue = "false",
+            matchIfMissing = true)
     ApplicationListener<ApplicationReadyEvent> startLongPollingApplication(TelegramBotsLongPollingApplication application,
                                                                            TelegramProperties telegramProperties,
                                                                            LongPollingUpdateConsumer updateConsumer) {
         return event -> {
             try {
                 if (!telegramProperties.getLongPolling().isStartOnReady()) {
+                    log.info("set long-polling bot on ready state");
                     application.stop();
+                } else {
+                    log.info("starting long-polling bot");
                 }
 
                 application.registerBot(telegramProperties.getToken(), updateConsumer);

@@ -23,6 +23,4 @@ public class TelegramWebhookConfig {
         return new TelegramBotsWebhookApplication();
     }
 
-
-
 }

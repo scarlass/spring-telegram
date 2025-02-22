@@ -18,5 +18,6 @@ public class TelegramProperties {
     @Setter
     public static class LongPolling {
         private boolean startOnReady = true;
+        private boolean manualRegisterSetup = false;
     }
 }
